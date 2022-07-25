@@ -5,18 +5,22 @@ import (
 	"ztcoin/block"
 )
 
-type Blockchain []block.Block
+type Blockchain struct {
+	Chain      []block.Block
+	Difficulty int //区块难度
+}
 
-func New(b block.Block) Blockchain {
-	chain := Blockchain{}
-	chain = append(chain, b)
+func New(b block.Block, level int) Blockchain {
+	bc := Blockchain{}
+	bc.Chain = append(bc.Chain, b)
 	// cache.GoCache.Set("cztCoin", chain, 2*time.Minute)
-	return chain
+	bc.Difficulty = level
+	return bc
 }
 
 //从链上获取前一个区块的hash
 func (bc Blockchain) GetLastBlockHash() string {
-	lastBlock := bc[len(bc)-1]
+	lastBlock := bc.Chain[len(bc.Chain)-1]
 	return lastBlock.Hash
 }
 
@@ -24,7 +28,8 @@ func (bc Blockchain) GetLastBlockHash() string {
 func (bc Blockchain) AddBlockToChain(block block.Block) Blockchain {
 	prevHash := bc.GetLastBlockHash()
 	block.PrevHash = prevHash
-	bc = append(bc, block)
+	block.Hash = block.Mine(bc.Difficulty)
+	bc.Chain = append(bc.Chain, block)
 	// cache.GoCache.Set("cztCoin", bc, 2*time.Minute)
 	return bc
 }
@@ -33,17 +38,17 @@ func (bc Blockchain) AddBlockToChain(block block.Block) Blockchain {
 
 func (bc Blockchain) VerifyBlock() error {
 
-	if len(bc) == 1 {
-		if bc[0].Hash == bc[0].CalculateHash() {
+	if len(bc.Chain) == 1 {
+		if bc.Chain[0].Hash == bc.Chain[0].CalculateHash() {
 			return nil
 		}
 		return errors.New("创世块被篡改")
 	}
-	for i := 1; i < len(bc)-1; i++ {
-		if bc[i].Hash != bc[i].CalculateHash() {
+	for i := 1; i < len(bc.Chain)-1; i++ {
+		if bc.Chain[i].Hash != bc.Chain[i].CalculateHash() {
 			return errors.New("数据被篡改")
 		}
-		if bc[i].PrevHash != bc[i-1].CalculateHash() {
+		if bc.Chain[i].PrevHash != bc.Chain[i-1].CalculateHash() {
 			return errors.New("前后区块链接断裂")
 		}
 	}

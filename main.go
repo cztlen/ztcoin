@@ -2,23 +2,21 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
 	"ztcoin/block"
 	"ztcoin/chain"
 )
 
 func main() {
-	rand.Seed(time.Now().Unix())
-	r := rand.Intn(100)
+
+	// b := 1
 
 	// p := pow.ProofOfWork("ztcoin")
-	fmt.Println(r)
+	fmt.Println(block.BigBang(3))
 }
 
 func Test() {
-	b := block.BigBang()
-	chain := chain.New(b) //初始化chain
+	b := block.BigBang(3)
+	chain := chain.New(b, 1) //初始化chain
 
 	nb, _ := b.GenerateBlock("转账 10元") //生成新区块
 	chain = chain.AddBlockToChain(nb)  //向链上添加区块
@@ -33,12 +31,12 @@ func Test() {
 	if err := chain.VerifyBlock(); err != nil {
 		fmt.Println(err.Error())
 	}
-	for _, b := range chain {
+	for _, b := range chain.Chain {
 		fmt.Printf("%+v\n", b)
 	}
-	chain[1].Data = "转账 1元"
-	chain[1].Hash = chain[1].CalculateHash()
-	for _, b := range chain {
+	chain.Chain[1].Data = "转账 1元"
+	chain.Chain[1].Hash = chain.Chain[1].CalculateHash()
+	for _, b := range chain.Chain {
 		fmt.Printf("%+v\n", b)
 	}
 }
